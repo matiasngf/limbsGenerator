@@ -1,44 +1,81 @@
 import 'babel-polyfill';
-const exportSTL = require('threejs-export-stl');
-import { saveAs } from 'file-saver';
-const path = require('path');
-var JSZip = require("jszip");
 
-import getFilesFor from './components/file-dir';
-import CargarObjeto from './components/CargarObjeto';
-import { checkPathFile, downloadMesh, downloadMultiple, getStlPath } from './components/fileManage';
+import { getFilesFor, getAllFiles } from './components/partsDir';
+import getStl, {getStlSync, getScale} from './components/stlManage';
+import { checkAllPaths, downloadMesh, downloadAsZip } from './components/fileManage';
 
-const round5 = (x) => {
-  return Math.ceil(x/5)*5;
-}
-
-const getScale = (mm) => {
-  return round5(mm * 100 / 64) / 100;
-}
-
-
-const pr_type = 'left-hand';
-const parts = getFilesFor(pr_type);
+console.log('%c Limbs generator. Made with <3 by matiasngf', 'background: #4772b2; color: #ffffff; padding: 5px');
 
 const downloadProsthesis = (type, mm) => {
-  const parts = getFilesFor(type);
-  const scale = getScale(mm);
-  let promisesCheck = [];
-  for(let i=0; i < parts.length; i++ ) {
-    console.log(getStlPath(parts[i]));
-    
-    promisesCheck.push(checkPathFile( getStlPath(parts[i])) );
-  }
-  console.log(promisesCheck);
-  
-  Promise.all(promisesCheck).then( values => {
-    console.log(values);
-  } );
+	const parts = getFilesFor(type);
+	downloadMultipleParts(parts, mm);
 };
 
+const downloadMultipleParts = (parts, mm) => {
+	let promiseParts = [];
+	let scale = getScale(mm);
+	console.log(parts);
+	for(let i=0; i<parts.length; i++) {
+		promiseParts.push( getStlSync(parts[i], scale) );
+	}
+	Promise.all(promiseParts).then( (values) => {
+		console.log(values);
+		downloadAsZip(values);
+	});
+}
+
+class prosthesis {
+	constructor() {
+		this.parts = [];
+		this.scale = 0;
+		this.type = 'none';
+		this.meshList = [];
+
+		this.setScale = this.setScale.bind(this);
+		this.setMM = this.setMM.bind(this);
+		this.download = this.download.bind(this);
+		this.getStl = this.getStl.bind(this);
+		this.setType = this.setType.bind(this);
+	}
+	setScale(scale) {
+		this.scale = scale
+	}
+	setMM(mm){
+		this.scale = getScale(mm);
+	}
+	download() {
+		console.log('Download started');
+		downloadAsZip(this.meshList, this.parts, this.scale, this.type);
+	}
+	getStl(callback) {
+		let promiseParts = [];
+		for(let i=0; i<this.parts.length; i++) {
+			promiseParts.push( getStlSync(this.parts[i], this.scale) );
+		}
+		Promise.all(promiseParts).then( (values) => {
+			this.meshList = values;
+			callback()
+			
+		});
+	}
+	setType(type) {
+		const parts = getFilesFor(type);
+		if(parts) {
+			this.parts = parts;
+			this.type = type;
+		}
+	}
+}
+
+let p = new prosthesis();
+p.setType('left-hand');
+p.setMM(70);
+p.getStl( () => {
+	p.download();
+});
 
 
-downloadProsthesis('left-hand', 32);
+// downloadProsthesis('left-hand', 70);
 
 
 
