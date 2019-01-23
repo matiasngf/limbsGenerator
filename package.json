@@ -1,0 +1,34 @@
+{
+  "name": "limbsgenerator",
+  "version": "1.0.0",
+  "description": "3D Prosthesis generator",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start-dev": "start cmd /k npm run server-start && start cmd /k npm run sass-compile && start cmd /k npm run build",
+    "server-start": "live-server public",
+    "sass-compile": "sass ./src/sass/main.scss ./public/css/app.css --watch",
+    "build": "webpack --watch",
+    "kill": "taskkill /IM cmd.exe /FI \"WINDOWTITLE eq npm\"",
+    "restart": "npm run kill && npm run start-dev"
+  },
+  "author": "Matias Gonzalez Fernandez",
+  "license": "MIT",
+  "dependencies": {
+    "babel-core": "^6.25.0",
+    "babel-loader": "^7.1.1",
+    "babel-polyfill": "^6.0.16",
+    "babel-preset-env": "^1.7.0",
+    "babel-preset-react": "^6.24.1",
+    "file-saver": "^2.0.0",
+    "jszip": "^3.1.5",
+    "live-server": "^1.2.1",
+    "sass": "^1.16.1",
+    "three": "^0.100.0",
+    "three-stl-loader": "^1.0.6",
+    "threejs-export-stl": "0.0.4",
+    "webpack": "^4.28.4",
+    "webpack-cli": "^3.2.1",
+    "webpack-dev-server": "^3.1.14"
+  }
+}
